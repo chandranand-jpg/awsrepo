@@ -1,0 +1,34 @@
+name: Test ARC Runner on AWS EKS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows you to trigger the pipeline manually from the GitHub UI
+
+jobs:
+  validate-arc-runner:
+    # CRITICAL: Replace 'arc-runner-set-test' with the exact name or label 
+    # of your Helm-deployed ARC Runner Scale Set.
+    runs-on: arc-runner-set
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Print Runner Environment Info
+        run: |
+          echo "🚀 Pipeline is successfully running on your self-hosted EKS ARC runner!"
+          echo "👤 Running as user: $(whoami)"
+          echo "🐳 Container Kernel: $(uname -a)"
+
+      - name: Test Network Connectivity
+        run: |
+          echo "Checking internet access from the EKS cluster..."
+          curl -I https://github.com
+
+      - name: Verify Pre-installed Tooling
+        run: |
+          echo "Checking for AWS CLI and Kubernetes utilities inside the runner image..."
+          aws --version || echo "AWS CLI not pre-installed"
+          kubectl version --client || echo "kubectl not pre-installed"
