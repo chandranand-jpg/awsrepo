@@ -1,0 +1,133 @@
+name: "Terraform Ordered CI/CD Pipeline"
+on:
+  push:
+    branches: [main]
+    paths: ['environments/**','modules/**']
+
+permissions:
+  contents: read
+
+jobs:
+  # =======================================================
+  # JOB 1: Detect Changes, Validate, and Prepare Plan Artifacts
+  # =======================================================
+  validate-and-plan:
+    name: "Plan & Validate"
+    runs-on: arc-runner-set
+    outputs:
+      environments: ${{ steps.set-matrix.outputs.environments }}
+      
+    strategy:
+      max-parallel: 1 # Forces components to validate sequentially in order
+      matrix:
+        environment: [dev, prod] # Hardcoded top-level targets to check
+        component: ["01-vpc", "02-database", "03-eks"]
+    
+    defaults:
+      run:
+        working-directory: ./environments/${{ matrix.environment }}/${{ matrix.component }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 
+
+      # Dynamic path detection check
+      - name: Evaluate Path Changes
+        id: check_changes
+        run: |
+          TARGET_PATH="environments/${{ matrix.environment }}/${{ matrix.component }}"
+          if git diff --name-only HEAD^ HEAD | grep -q "^$TARGET_PATH/"; then
+            echo "execute_job=true" >> $GITHUB_OUTPUT
+          else
+            echo "execute_job=false" >> $GITHUB_OUTPUT
+          end
+
+      # Expose changes found in this run to subsequent jobs
+      - name: Track Active Environments
+        id: set-matrix
+        run: |
+          CHANGED_ENVS=$(git diff --name-only HEAD^ HEAD | grep '^environments/' | cut -d'/' -f2 | sort -u | jq -Rsc 'split("\n")[:-1]')
+          echo "environments=$CHANGED_ENVS" >> $GITHUB_OUTPUT
+
+      - name: Setup Terraform
+        if: steps.check_changes.outputs.execute_job == 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+
+      - name: Terraform Init
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform plan -no-color -input=false -out=tfplan
+
+      # Save the generated plan so the deploy job executes the exact reviewed configuration
+      - name: Upload Plan Artifact
+        if: steps.check_changes.outputs.execute_job == 'true'
+        uses: actions/artifacts/upload@v4
+        with:
+          name: tfplan-${{ matrix.environment }}-${{ matrix.component }}
+          path: ./environments/${{ matrix.environment }}/${{ matrix.component }}/tfplan
+          retention-days: 1
+
+  # =======================================================
+  # JOB 2: Sequential Execution of Saved Plan Artifacts
+  # =======================================================
+  deploy:
+    name: "Deploy"
+    needs: validate-and-plan
+    # Only scale out to deployment if the previous job tracked actual environment updates
+    if: ${{ needs.validate-and-plan.outputs.environments != '[]' && needs.validate-and-plan.outputs.environments != '' }}
+    runs-on: arc-runner-set
+    
+    strategy:
+      max-parallel: 1 # Ensures components are applied strictly in order
+      matrix:
+        environment: ${{ fromJson(needs.validate-and-plan.outputs.environments) }}
+        component: ["01-vpc", "02-database", "03-eks"]
+        
+    environment: ${{ matrix.environment }} # Triggers production manual approval gate natively
+    
+    defaults:
+      run:
+        working-directory: ./environments/${{ matrix.environment }}/${{ matrix.component }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Evaluate Path Changes
+        id: check_changes
+        run: |
+          TARGET_PATH="environments/${{ matrix.environment }}/${{ matrix.component }}"
+          if git diff --name-only HEAD^ HEAD | grep -q "^$TARGET_PATH/"; then
+            echo "execute_job=true" >> $GITHUB_OUTPUT
+          else
+            echo "execute_job=false" >> $GITHUB_OUTPUT
+          end
+
+      - name: Setup Terraform
+        if: steps.check_changes.outputs.execute_job == 'true'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+       
+      - name: Terraform Init
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform init -input=false
+
+      - name: Generate fresh Plan 
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform plan -no-color -input=false -out=tfplan
+
+      - name: Terraform Apply
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform apply -input=false -auto-approve tfplan
