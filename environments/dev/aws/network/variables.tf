@@ -12,3 +12,8 @@ variable "module_name" {
   description = "Module name"
   type        = string
 }
+
+variable "dummy" {
+  description = "dummy variable"
+  type  = string
+}
