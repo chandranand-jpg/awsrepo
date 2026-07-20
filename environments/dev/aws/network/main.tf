@@ -45,5 +45,6 @@ module "network" {
       tier              = "public"
     }
   }
+
   environment = "dev"
 }
