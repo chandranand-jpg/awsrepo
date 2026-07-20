@@ -60,7 +60,10 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.8.0"
-      
+          
+      - name: Install AWS CLI
+        uses: aws-actions/setup-aws-cli@v2
+
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
 
