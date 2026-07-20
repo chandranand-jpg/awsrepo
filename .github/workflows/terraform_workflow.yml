@@ -43,7 +43,7 @@ jobs:
             echo "execute_job=true" >> $GITHUB_OUTPUT
           else
             echo "execute_job=false" >> $GITHUB_OUTPUT
-          end
+          fi
 
       # Expose changes found in this run to subsequent jobs
       - name: Track Active Environments
@@ -113,7 +113,7 @@ jobs:
             echo "execute_job=true" >> $GITHUB_OUTPUT
           else
             echo "execute_job=false" >> $GITHUB_OUTPUT
-          end
+          fi
 
       - name: Setup Terraform
         if: steps.check_changes.outputs.execute_job == 'true'
