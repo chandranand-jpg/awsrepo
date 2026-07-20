@@ -54,6 +54,12 @@ jobs:
           unzip -q awscliv2.zip
           sudo ./aws/install --update
       
+      - name: setup node
+        if: steps.check_changes.outputs.execute_job == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
       - name: Check Injected AWS Environment Variables
         run: |
           echo "=== AWS Environment Variables ==="
@@ -69,14 +75,11 @@ jobs:
             echo "ERROR: AWS_WEB_IDENTITY_TOKEN_FILE path does not exist!"
           fi
 
+      - name: Pause for Debugging
+        run: sleep 600 # Keeps the ephemeral runner pod alive for 10 minutes
+
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
-
-      - name: setup node
-        if: steps.check_changes.outputs.execute_job == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
 
 
       - name: Setup Terraform
