@@ -4,10 +4,6 @@ on:
     branches: [main]
     paths: ['environments/**','modules/**']
 
-permissions:
-  contents: read
-  actions: read
-
 jobs:
   # =======================================================
   # JOB 1: Detect Changes, Validate, and Prepare Plan Artifacts
@@ -51,6 +47,12 @@ jobs:
         run: |
           CHANGED_ENVS=$(git diff --name-only HEAD^ HEAD | grep '^environments/' | cut -d'/' -f2 | sort -u | jq -Rsc 'split("\n")[:-1]')
           echo "environments=$CHANGED_ENVS" >> $GITHUB_OUTPUT
+          
+      - name: setup node
+        if: steps.check_changes.outputs.execute_job == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Setup Terraform
         if: steps.check_changes.outputs.execute_job == 'true'
@@ -114,6 +116,12 @@ jobs:
           else
             echo "execute_job=false" >> $GITHUB_OUTPUT
           fi
+      
+      - name: setup node
+        if: steps.check_changes.outputs.execute_job == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Setup Terraform
         if: steps.check_changes.outputs.execute_job == 'true'
