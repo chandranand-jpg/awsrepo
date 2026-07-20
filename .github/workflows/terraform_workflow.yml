@@ -54,11 +54,15 @@ jobs:
         with:
           node-version: '20'
 
+
       - name: Setup Terraform
         if: steps.check_changes.outputs.execute_job == 'true'
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.8.0"
+      
+      - name: Verify AWS Identity
+        run: aws sts get-caller-identity
 
       - name: Terraform Init
         if: steps.check_changes.outputs.execute_job == 'true'
