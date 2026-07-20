@@ -1,5 +1,5 @@
 module "network" {
-  source   = "../../../modules/aws/network"
+  source   = "../../../../modules/aws/network"
   vpc_cidr = "10.1.0.0/16"
   subnets_config = {
     "data10-a" = {
