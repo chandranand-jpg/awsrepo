@@ -26,7 +26,7 @@ jobs:
     
     defaults:
       run:
-        working-directory: ./environments/${{ matrix.environment }}/${{ matrix.component }}
+        working-directory: ./environments/${{ matrix.environment }}/aws/${{ matrix.component }}
 
     steps:
       - name: Checkout Code
@@ -38,7 +38,7 @@ jobs:
       - name: Evaluate Path Changes
         id: check_changes
         run: |
-          TARGET_PATH="environments/${{ matrix.environment }}/${{ matrix.component }}"
+          TARGET_PATH="environments/${{ matrix.environment }}/aws/${{ matrix.component }}"
           if git diff --name-only HEAD^ HEAD | grep -q "^$TARGET_PATH/"; then
             echo "execute_job=true" >> $GITHUB_OUTPUT
           else
@@ -99,7 +99,7 @@ jobs:
     
     defaults:
       run:
-        working-directory: ./environments/${{ matrix.environment }}/${{ matrix.component }}
+        working-directory: ./environments/${{ matrix.environment }}/aws/${{ matrix.component }}
 
     steps:
       - name: Checkout Code
@@ -108,7 +108,7 @@ jobs:
       - name: Evaluate Path Changes
         id: check_changes
         run: |
-          TARGET_PATH="environments/${{ matrix.environment }}/${{ matrix.component }}"
+          TARGET_PATH="environments/${{ matrix.environment }}/aws/${{ matrix.component }}"
           if git diff --name-only HEAD^ HEAD | grep -q "^$TARGET_PATH/"; then
             echo "execute_job=true" >> $GITHUB_OUTPUT
           else
