@@ -1,0 +1,40 @@
+name: "Terraform Ad Hoc Destroy"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_destroy:
+        description: 'Type "DESTROY" to confirm execution'
+        required: true
+        default: 'cancel'
+
+jobs:
+  # =======================================================
+  # JOB 1: Detect Changes, Validate, and Prepare Plan Artifacts
+  # =======================================================
+  terraform-destroy::
+    name: "Destroy"
+    runs-on: arc-runner-set
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: setup node
+        if: steps.check_changes.outputs.execute_job == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+
+      - name: Terraform Init
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform init -input=false
+
+      - name: Terraform Destroy
+        if: steps.check_changes.outputs.execute_job == 'true'
+        run: terraform destroy -auto-approve
