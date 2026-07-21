@@ -48,11 +48,11 @@ jobs:
           CHANGED_ENVS=$(git diff --name-only HEAD^ HEAD | grep '^environments/' | cut -d'/' -f2 | sort -u | jq -Rsc 'split("\n")[:-1]')
           echo "environments=$CHANGED_ENVS" >> $GITHUB_OUTPUT
 
-      - name: Install AWS CLI v2
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip -q awscliv2.zip
-          sudo ./aws/install --update
+      # - name: Install AWS CLI v2
+      #   run: |
+      #     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #     unzip -q awscliv2.zip
+      #     sudo ./aws/install --update
       
       - name: setup node
         if: steps.check_changes.outputs.execute_job == 'true'
@@ -60,26 +60,26 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Check Injected AWS Environment Variables
-        run: |
-          echo "=== AWS Environment Variables ==="
-          env | grep AWS || echo "No AWS environment variables found!"
+      # - name: Check Injected AWS Environment Variables
+      #   run: |
+      #     echo "=== AWS Environment Variables ==="
+      #     env | grep AWS || echo "No AWS environment variables found!"
 
-      - name: Check Token File Readability
-        run: |
-          echo "=== Token File Check ==="
-          if [ -f "$AWS_WEB_IDENTITY_TOKEN_FILE" ]; then
-            echo "Token file exists at: $AWS_WEB_IDENTITY_TOKEN_FILE"
-            echo "Token head: $(head -c 20 $AWS_WEB_IDENTITY_TOKEN_FILE)..."
-          else
-            echo "ERROR: AWS_WEB_IDENTITY_TOKEN_FILE path does not exist!"
-          fi
+      # - name: Check Token File Readability
+      #   run: |
+      #     echo "=== Token File Check ==="
+      #     if [ -f "$AWS_WEB_IDENTITY_TOKEN_FILE" ]; then
+      #       echo "Token file exists at: $AWS_WEB_IDENTITY_TOKEN_FILE"
+      #       echo "Token head: $(head -c 20 $AWS_WEB_IDENTITY_TOKEN_FILE)..."
+      #     else
+      #       echo "ERROR: AWS_WEB_IDENTITY_TOKEN_FILE path does not exist!"
+      #     fi
 
-      - name: Pause for Debugging
-        run: sleep 600 # Keeps the ephemeral runner pod alive for 10 minutes
+      # - name: Pause for Debugging
+      #   run: sleep 600 # Keeps the ephemeral runner pod alive for 10 minutes
 
-      - name: Verify AWS Identity
-        run: aws sts get-caller-identity
+      # - name: Verify AWS Identity
+      #   run: aws sts get-caller-identity
 
 
       - name: Setup Terraform
