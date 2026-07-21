@@ -53,7 +53,7 @@ resource "aws_route_table" "private_nat_rt" {
 }
 resource "aws_route_table_association" "private_nat_assoc" {
   for_each = {
-    for k, v in var.subnets_config : k => aws_subnet.network_subnets[each.key] if v.needs_nat
+    for k, v in var.subnets_config : k => aws_subnet.network_subnets[k] if v.needs_nat
   }
   subnet_id      = each.value.id
   route_table_id = aws_route_table.private_nat_rt[each.key].id
