@@ -12,7 +12,7 @@ jobs:
   # =======================================================
   # JOB 1: Detect Changes, Validate, and Prepare Plan Artifacts
   # =======================================================
-  terraformdestroy::
+  terraformdestroy:
     name: "Destroy"
     runs-on: arc-runner-set
     
