@@ -38,7 +38,7 @@ module "network" {
       tier              = "public"
     }
     "pub10-b" = {
-      cidr_block        = "10.1.162.0/20"
+      cidr_block        = "10.1.176.0/20"
       availability_zone = "ap-southeast-2b"
       is_public         = true
       needs_nat         = false
