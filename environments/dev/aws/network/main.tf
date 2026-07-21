@@ -31,14 +31,14 @@ module "network" {
       tier              = "private"
       }
     "pub10-a" = {
-      cidr_block        = "10.1.160.0/16"
+      cidr_block        = "10.1.160.0/20"
       availability_zone = "ap-southeast-2a"
       is_public         = true
       needs_nat         = false
       tier              = "public"
     }
     "pub10-b" = {
-      cidr_block        = "10.1.162.0/16"
+      cidr_block        = "10.1.162.0/20"
       availability_zone = "ap-southeast-2b"
       is_public         = true
       needs_nat         = false
