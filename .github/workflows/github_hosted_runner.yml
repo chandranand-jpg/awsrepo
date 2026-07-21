@@ -11,6 +11,9 @@ jobs:
   build-and-test:
     # Specifies the GitHub-managed runner environment
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # Required to request the OIDC JWT token
+      contents: read     # Required to check out repository code
 
     steps:
       # Step 1: Check out the repository source code onto the runner
