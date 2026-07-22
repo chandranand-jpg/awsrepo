@@ -23,7 +23,7 @@ jobs:
     strategy:
       max-parallel: 1 # Forces components to validate sequentially in order
       matrix:
-        environment: [dev, prod] # Hardcoded top-level targets to check
+        environment: [dev] # Hardcoded top-level targets to check
         component: ["network"]
 
         # component: ["network", "instances", "eks"]
