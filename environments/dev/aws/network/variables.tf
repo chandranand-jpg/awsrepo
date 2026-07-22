@@ -13,7 +13,3 @@ variable "module_name" {
   type        = string
 }
 
-variable "dummy" {
-  type  = string
-  default = "dumy"
-}
