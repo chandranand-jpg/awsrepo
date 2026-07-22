@@ -24,14 +24,15 @@ resource "aws_subnet" "network_subnets" {
   }
 }
 resource "aws_eip" "nat" {
+  for_each = { for k, v in var.subnets_config : v.availability_zone => k if v.is_public }
   domain = "vpc"
   tags = {
-    Name = "main-nat-eip"
+    Name = "main-nat-${each.key}-eip"
   }
 }
 resource "aws_nat_gateway" "pubnat" {
   for_each = {for k, v in var.subnets_config : v.availability_zone => k if v.is_public}
-  allocation_id = aws_eip.nat.id
+  allocation_id = aws_eip.nat[each.key].id
   subnet_id     = aws_subnet.network_subnets[each.value].id # Must be a public subnet
   tags = {
     Name = "main-nat-${each.value}-gateway"
