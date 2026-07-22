@@ -41,10 +41,13 @@ jobs:
           terraform_version: "1.8.0"
             
       - name: change directory to terraform
-        run: cd environments/dev/aws/network
+        run: |
+          cd environments/dev/aws/network
+          terraform init -input=false
+          terraform destroy -auto-approve
 
-      - name: Terraform Init
-        run: terraform init -input=false
+      # - name: Terraform Init
+      #   run: terraform init -input=false
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+      # - name: Terraform Destroy
+      #   run: terraform destroy -auto-approve
