@@ -112,7 +112,7 @@ jobs:
     needs: validate-and-plan
     # Only scale out to deployment if the previous job tracked actual environment updates
     if: ${{ needs.validate-and-plan.outputs.environments != '[]' && needs.validate-and-plan.outputs.environments != '' }}
-    runs-on: arc-runner-set
+    runs-on: ubuntu-latest
     
     strategy:
       max-parallel: 1 # Ensures components are applied strictly in order
