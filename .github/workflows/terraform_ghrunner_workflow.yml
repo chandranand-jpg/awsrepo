@@ -25,8 +25,6 @@ jobs:
       matrix:
         environment: [dev] # Hardcoded top-level targets to check
         component: ["network"]
-
-        # component: ["network", "instances", "eks"]
     
     defaults:
       run:
@@ -62,7 +60,22 @@ jobs:
       #     unzip -q awscliv2.zip
       #     sudo ./aws/install --update
 
-      
+      - name: Debug OIDC Token Claims
+        run: |
+          # Request the OIDC ID token from GitHub's internal endpoint
+          TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+
+          # Split and base64 decode the JWT payload
+          PAYLOAD=$(echo "$TOKEN" | cut -d'.' -f2)
+          # Pad base64 string if necessary
+          MOD=$((${#PAYLOAD} % 4))
+          if [ $MOD -eq 2 ]; then PAYLOAD="${PAYLOAD}=="; elif [ $MOD -eq 3 ]; then PAYLOAD="${PAYLOAD}="; fi
+          
+          echo "=== DECODED OIDC JWT PAYLOAD ==="
+          echo "$PAYLOAD" | base64 -d | jq .
+        
+
       - name: Configure AWS Credentials via STS OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -75,7 +88,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-
 
       - name: Setup Terraform
         if: steps.check_changes.outputs.execute_job == 'true'
@@ -130,13 +142,28 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Debug OIDC Token Claims
+        run: |
+          # Request the OIDC ID token from GitHub's internal endpoint
+          TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+
+          # Split and base64 decode the JWT payload
+          PAYLOAD=$(echo "$TOKEN" | cut -d'.' -f2)
+          # Pad base64 string if necessary
+          MOD=$((${#PAYLOAD} % 4))
+          if [ $MOD -eq 2 ]; then PAYLOAD="${PAYLOAD}=="; elif [ $MOD -eq 3 ]; then PAYLOAD="${PAYLOAD}="; fi
+          
+          echo "=== DECODED OIDC JWT PAYLOAD ==="
+          echo "$PAYLOAD" | base64 -d | jq .
+        
+
       - name: Configure AWS Credentials via STS OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::078716601120:role/github-actions-runner-role
           aws-region: ap-southeast-2
           # audience: sts.amazonaws.com
-
 
       - name: Evaluate Path Changes
         id: check_changes
