@@ -19,6 +19,22 @@ jobs:
       # Step 1: Check out the repository source code onto the runner
       - name: Checkout Repository Code
         uses: actions/checkout@v4
+      
+      - name: Debug OIDC Token Claims
+        run: |
+          # Request the OIDC ID token from GitHub's internal endpoint
+          TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+
+          # Split and base64 decode the JWT payload
+          PAYLOAD=$(echo "$TOKEN" | cut -d'.' -f2)
+          # Pad base64 string if necessary
+          MOD=$((${#PAYLOAD} % 4))
+          if [ $MOD -eq 2 ]; then PAYLOAD="${PAYLOAD}=="; elif [ $MOD -eq 3 ]; then PAYLOAD="${PAYLOAD}="; fi
+          
+          echo "=== DECODED OIDC JWT PAYLOAD ==="
+          echo "$PAYLOAD" | base64 -d | jq .
+          
 
       - name: Configure AWS Credentials via STS OIDC
         uses: aws-actions/configure-aws-credentials@v4
