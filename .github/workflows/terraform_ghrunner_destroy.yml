@@ -1,0 +1,50 @@
+name: "Terraform GH Runner Destroy"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_destroy:
+        description: 'Type "DESTROY" to confirm execution'
+        required: true
+        default: 'cancel'
+permissions:
+  id-token: write   # Required to request the OIDC JWT token
+  contents: read     # Required to check out repository code
+
+
+jobs:
+  # =======================================================
+  # JOB 1: Detect Changes, Validate, and Prepare Plan Artifacts
+  # =======================================================
+  terraformdestroy:
+    name: "Destroy"
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS Credentials via STS OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::078716601120:role/github-actions-runner-role
+          aws-region: ap-southeast-2
+     
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.0"
+            
+      - name: change directory to terraform
+        run: cd environments/dev/aws/network
+
+      - name: Terraform Init
+        run: terraform init -input=false
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
